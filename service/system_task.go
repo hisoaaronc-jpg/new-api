@@ -73,14 +73,50 @@ func registeredSystemTaskHandlers() []SystemTaskHandler {
 	return handlers
 }
 
-// logCleanupHandler wraps the existing on-demand log cleanup task as a
-// registered (non-scheduled) handler. It is created via StartLogCleanupTask.
+// logCleanupHandler wraps the log cleanup task as a registered handler. It is
+// created on demand via StartLogCleanupTask, and the scheduler also creates
+// one run a day with a target timestamp derived from LOG_RETENTION_DAYS, so
+// old logs are deleted without an administrator having to trigger it.
 type logCleanupHandler struct{}
 
 func (logCleanupHandler) Type() string { return model.SystemTaskTypeLogCleanup }
 
 func (logCleanupHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) {
 	runLogCleanupTask(ctx, task, runnerID)
+}
+
+// Enabled keeps the daily retention cleanup always on; the retention window
+// itself is configured through LOG_RETENTION_DAYS.
+func (logCleanupHandler) Enabled() bool { return true }
+
+func (logCleanupHandler) Interval() time.Duration { return 24 * time.Hour }
+
+func (logCleanupHandler) NewPayload() any {
+	return LogCleanupPayload{
+		TargetTimestamp: logCleanupTargetTimestamp(common.GetTimestamp(), logRetentionDays()),
+		BatchSize:       logCleanupBatchSize,
+	}
+}
+
+// defaultLogRetentionDays is the log retention used when LOG_RETENTION_DAYS
+// is unset or invalid.
+const defaultLogRetentionDays = 30
+
+// logRetentionDays reads LOG_RETENTION_DAYS (days), falling back to the
+// default for unset, unparsable, or non-positive values so a typo can never
+// wipe the log table on the next run.
+func logRetentionDays() int {
+	days := common.GetEnvOrDefault("LOG_RETENTION_DAYS", defaultLogRetentionDays)
+	if days < 1 {
+		return defaultLogRetentionDays
+	}
+	return days
+}
+
+// logCleanupTargetTimestamp is the created_at cutoff for a cleanup run: logs
+// older than retentionDays days before now are deleted.
+func logCleanupTargetTimestamp(now int64, retentionDays int) int64 {
+	return now - int64(retentionDays)*24*60*60
 }
 
 func init() {

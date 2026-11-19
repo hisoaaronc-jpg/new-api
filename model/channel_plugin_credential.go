@@ -100,8 +100,11 @@ func UpdateChannelLocked(channelID int, update func(channel *Channel) error) (*C
 		// which is ciphertext when channel key encryption is enabled, while
 		// channel.Key after the read above is decrypted plaintext. Fetch the
 		// raw column value (no model destination, so no decrypt hook runs).
+		// Select by struct field name, not commonKeyCol: that global is only
+		// set by InitDB, and callers that open the database directly (such
+		// as the plugin-refresh tests) would get an empty SELECT list.
 		var stored string
-		if err := DB.Model(&Channel{}).Where("id = ?", channelID).Select(commonKeyCol).Row().Scan(&stored); err != nil {
+		if err := DB.Model(&Channel{}).Where("id = ?", channelID).Select("Key").Row().Scan(&stored); err != nil {
 			return nil, err
 		}
 		updates, err := changes()

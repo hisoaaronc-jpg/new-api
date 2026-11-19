@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -231,4 +232,47 @@ func TestEnqueueSystemTaskReportsCreatedAndExistingActive(t *testing.T) {
 	require.True(t, created)
 	require.NotNil(t, second)
 	assert.NotEqual(t, first.TaskID, second.TaskID)
+}
+
+func TestLogCleanupRetentionDays(t *testing.T) {
+	// Unset falls back to the 30-day default.
+	require.NoError(t, os.Unsetenv("LOG_RETENTION_DAYS"))
+	t.Cleanup(func() { _ = os.Unsetenv("LOG_RETENTION_DAYS") })
+	assert.Equal(t, defaultLogRetentionDays, logRetentionDays())
+
+	for _, tc := range []struct {
+		name  string
+		value string
+		want  int
+	}{
+		{"explicit value is honored", "7", 7},
+		{"zero falls back to the default", "0", defaultLogRetentionDays},
+		{"negative falls back to the default", "-5", defaultLogRetentionDays},
+		{"unparsable falls back to the default", "thirty", defaultLogRetentionDays},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("LOG_RETENTION_DAYS", tc.value)
+			assert.Equal(t, tc.want, logRetentionDays())
+		})
+	}
+}
+
+func TestLogCleanupTargetTimestamp(t *testing.T) {
+	const now int64 = 1_700_000_000
+	assert.Equal(t, now-30*24*60*60, logCleanupTargetTimestamp(now, 30))
+	assert.Equal(t, now-7*24*60*60, logCleanupTargetTimestamp(now, 7))
+	assert.Equal(t, now, logCleanupTargetTimestamp(now, 0))
+}
+
+func TestLogCleanupHandlerIsScheduledDaily(t *testing.T) {
+	handler := logCleanupHandler{}
+	var _ ScheduledSystemTaskHandler = handler
+	assert.True(t, handler.Enabled())
+	assert.Equal(t, 24*time.Hour, handler.Interval())
+
+	payload, ok := handler.NewPayload().(LogCleanupPayload)
+	require.True(t, ok, "scheduled payload must be a LogCleanupPayload")
+	assert.Equal(t, logCleanupBatchSize, payload.BatchSize)
+	wantTarget := logCleanupTargetTimestamp(common.GetTimestamp(), defaultLogRetentionDays)
+	assert.InDelta(t, wantTarget, payload.TargetTimestamp, 5, "scheduled run deletes logs older than the retention window")
 }

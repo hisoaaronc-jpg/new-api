@@ -337,11 +337,30 @@ type RecordConsumeLogParams struct {
 	Other            *LogOther         `json:"other"`
 }
 
+// tokenLogDisabled reports whether the token opted out of consume-log
+// retention (German data minimisation). A missing token or a lookup failure
+// keeps logging: the flag must never silently drop logs it was not asked to
+// drop. Callers settle billing before they reach the log write, so this
+// helper can only suppress the log row, never a charge.
+func tokenLogDisabled(tokenId int) bool {
+	if tokenId <= 0 {
+		return false
+	}
+	token, err := GetTokenById(tokenId)
+	if err != nil || token == nil {
+		return false
+	}
+	return token.LogDisabled
+}
+
 func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams) {
 	// Request plugin report hooks read what the request settled, whether or
 	// not consume logs are kept.
 	common.SetContextKey(c, constant.ContextKeyConsumeLog, &params)
-	if !common.LogConsumeEnabled {
+	// A token that opted out of log retention still settles billing upstream
+	// of this call (SettleBilling runs before the log write); only the log
+	// row — and the usage-data export derived from it — is skipped here.
+	if !common.LogConsumeEnabled || tokenLogDisabled(params.TokenId) {
 		return
 	}
 	logger.LogInfo(c, common.LogText("record consume log: userId=%d, params=%s", userId, common.GetJsonString(params)))
@@ -428,7 +447,7 @@ type RecordTaskBillingLogParams struct {
 }
 
 func RecordTaskBillingLog(params RecordTaskBillingLogParams) {
-	if params.LogType == LogTypeConsume && !common.LogConsumeEnabled {
+	if params.LogType == LogTypeConsume && (!common.LogConsumeEnabled || tokenLogDisabled(params.TokenId)) {
 		return
 	}
 	username, _ := GetUsernameById(params.UserId, false)
@@ -750,6 +769,100 @@ func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelNa
 	stat.Tpm = rateStat.Tpm
 
 	return stat, nil
+}
+
+// StatementGroup is one aggregated line of a billing statement (对账单):
+// request count, token usage and settled quota for one model or one
+// channel. ChannelName is filled from the channel table when the channel
+// still exists; a deleted channel keeps its id with an empty name.
+type StatementGroup struct {
+	ModelName        string `json:"model_name,omitempty"`
+	ChannelId        int    `json:"channel_id,omitempty"`
+	ChannelName      string `json:"channel_name,omitempty"`
+	Requests         int64  `json:"requests"`
+	PromptTokens     int64  `json:"prompt_tokens"`
+	CompletionTokens int64  `json:"completion_tokens"`
+	TokenUsed        int64  `json:"token_used"`
+	Quota            int64  `json:"quota"`
+}
+
+// Statement is a billing statement for one window: the same settled usage
+// grouped by model and by channel, plus the grand total. It reads only the
+// consume logs (type = LogTypeConsume) already written by RecordConsumeLog,
+// so it can never create or change a charge; quota is the platform billing
+// unit (common.QuotaPerUnit quota = $1).
+type Statement struct {
+	ByModel   []StatementGroup `json:"by_model"`
+	ByChannel []StatementGroup `json:"by_channel"`
+	Total     StatementGroup   `json:"total"`
+}
+
+// statementLogQuery is the shared filter for every statement aggregate:
+// consume logs inside [startTimestamp, endTimestamp], optionally for one
+// user (userId 0 means all users, admin only — the controller decides).
+func statementLogQuery(userId int, startTimestamp int64, endTimestamp int64) *gorm.DB {
+	tx := LOG_DB.Table("logs").Where("type = ?", LogTypeConsume)
+	if userId != 0 {
+		tx = tx.Where("user_id = ?", userId)
+	}
+	if startTimestamp != 0 {
+		tx = tx.Where("created_at >= ?", startTimestamp)
+	}
+	if endTimestamp != 0 {
+		tx = tx.Where("created_at <= ?", endTimestamp)
+	}
+	return tx
+}
+
+const statementGroupSelect = "count(*) requests, " +
+	"COALESCE(sum(prompt_tokens), 0) prompt_tokens, " +
+	"COALESCE(sum(completion_tokens), 0) completion_tokens, " +
+	"COALESCE(sum(prompt_tokens), 0) + COALESCE(sum(completion_tokens), 0) token_used, " +
+	"COALESCE(sum(quota), 0) quota"
+
+// GetStatement aggregates the consume logs for the window [startTimestamp,
+// endTimestamp] by model and by channel. It runs three plain GROUP BY
+// queries against the logs table, so it works on SQLite, MySQL and
+// PostgreSQL alike. A log_disabled token (see Token.LogDisabled) leaves no
+// consume log row, so its usage is absent from the statement as well — the
+// settled charge still happened, only the per-call record is missing.
+func GetStatement(userId int, startTimestamp int64, endTimestamp int64) (statement Statement, err error) {
+	byModel := statementLogQuery(userId, startTimestamp, endTimestamp).
+		Select("model_name, " + statementGroupSelect).Group("model_name").Order("quota DESC")
+	if err = byModel.Find(&statement.ByModel).Error; err != nil {
+		common.SysError(common.LogText("failed to query statement by model: %s", err.Error()))
+		return statement, common.NewMessage("Failed to query statement")
+	}
+	byChannel := statementLogQuery(userId, startTimestamp, endTimestamp).
+		Select("channel_id, " + statementGroupSelect).Group("channel_id").Order("quota DESC")
+	if err = byChannel.Find(&statement.ByChannel).Error; err != nil {
+		common.SysError(common.LogText("failed to query statement by channel: %s", err.Error()))
+		return statement, common.NewMessage("Failed to query statement")
+	}
+	if err = statementLogQuery(userId, startTimestamp, endTimestamp).
+		Select(statementGroupSelect).Scan(&statement.Total).Error; err != nil {
+		common.SysError(common.LogText("failed to query statement total: %s", err.Error()))
+		return statement, common.NewMessage("Failed to query statement")
+	}
+	if statement.ByModel == nil {
+		statement.ByModel = []StatementGroup{}
+	}
+	if statement.ByChannel == nil {
+		statement.ByChannel = []StatementGroup{}
+	}
+	names := make(map[int]string)
+	for i := range statement.ByChannel {
+		row := &statement.ByChannel[i]
+		if _, ok := names[row.ChannelId]; !ok {
+			name := ""
+			if channel, err := GetChannelById(row.ChannelId, true); err == nil && channel != nil {
+				name = channel.Name
+			}
+			names[row.ChannelId] = name
+		}
+		row.ChannelName = names[row.ChannelId]
+	}
+	return statement, nil
 }
 
 func SumUsedToken(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string) (token int) {
