@@ -2976,7 +2976,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "相關項目",
     "footer.defaultCopyright": "版權所有。",
-    "footer.new\u0061pi.projectAttributionSuffix": "版權所有，由項目貢獻者設計與開發。",
+    "footer.newapi.projectAttributionSuffix": "版權所有，由項目貢獻者設計與開發。",
     "For a stronger password": "讓密碼更強",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "進階自訂渠道僅對 /v1/responses 且不做協定轉換的路由生效。",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "對於 2025 年 5 月 10 日之後新增的渠道，在部署時無需從模型名稱中移除 \".\"",
@@ -7781,6 +7781,17 @@
     "Zhipu": "智譜",
     "Zhipu GLM": "智譜GLM",
     "Zhipu V4": "智譜 V4",
-    "Zoom": "縮放"
+    "Zoom": "縮放",
+    "Statement": "對帳單",
+    "Export CSV": "匯出 CSV",
+    "By Model": "按模型",
+    "By Channel": "按渠道",
+    "Previous month": "上個月",
+    "Next month": "下個月",
+    "Failed to load statement": "載入對帳單失敗",
+    "Failed to export statement": "匯出對帳單失敗",
+    "No usage recorded for this month.": "本月暫無用量記錄。",
+    "Do not record usage logs": "不記錄用量日誌",
+    "When enabled, requests made with this API key are still billed, but no usage log entries are kept for them.": "啟用後，使用此 API 金鑰的請求仍會正常計費，但不會保留其用量日誌記錄。"
   }
 }

@@ -52,6 +52,7 @@ const baseApiKey: ApiKey = {
   model_limits: '',
   allow_ips: '',
   allow_user_quota_query: false,
+  log_disabled: false,
 }
 
 describe('API key Auto group form mapping', () => {
@@ -206,6 +207,30 @@ describe('API key user quota query form mapping', () => {
       expect(transformFormDataToPayload(defaults).allow_user_quota_query).toBe(
         stored
       )
+    }
+  )
+})
+
+describe('API key log_disabled form mapping', () => {
+  test('defaults a new key to recording usage logs', () => {
+    for (const defaultUseAutoGroup of [true, false]) {
+      const defaults = getApiKeyFormDefaultValues(defaultUseAutoGroup)
+
+      expect(defaults.log_disabled).toBe(false)
+      expect(transformFormDataToPayload(defaults).log_disabled).toBe(false)
+    }
+  })
+
+  test.each([true, false])(
+    'keeps the stored value %s when an existing key is edited and saved',
+    (stored) => {
+      const defaults = transformApiKeyToFormDefaults({
+        ...baseApiKey,
+        log_disabled: stored,
+      })
+
+      expect(defaults.log_disabled).toBe(stored)
+      expect(transformFormDataToPayload(defaults).log_disabled).toBe(stored)
     }
   )
 })

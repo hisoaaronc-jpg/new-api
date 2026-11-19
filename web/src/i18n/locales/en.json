@@ -7781,6 +7781,17 @@
     "Zhipu": "Zhipu",
     "Zhipu GLM": "Zhipu GLM",
     "Zhipu V4": "Zhipu V4",
-    "Zoom": "Zoom"
+    "Zoom": "Zoom",
+    "Statement": "Statement",
+    "Export CSV": "Export CSV",
+    "By Model": "By Model",
+    "By Channel": "By Channel",
+    "Previous month": "Previous month",
+    "Next month": "Next month",
+    "Failed to load statement": "Failed to load statement",
+    "Failed to export statement": "Failed to export statement",
+    "No usage recorded for this month.": "No usage recorded for this month.",
+    "Do not record usage logs": "Do not record usage logs",
+    "When enabled, requests made with this API key are still billed, but no usage log entries are kept for them.": "When enabled, requests made with this API key are still billed, but no usage log entries are kept for them."
   }
 }

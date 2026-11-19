@@ -41,6 +41,7 @@ export function getApiKeyFormSchema(t: TFunction, maxAutoGroups = 5) {
       model_limits: z.array(z.string()),
       allow_ips: z.string().optional(),
       allow_user_quota_query: z.boolean(),
+      log_disabled: z.boolean(),
       group: z.string().optional(),
       auto_groups_mode: z.enum(['inherit', 'custom']),
       auto_groups: z.array(z.string()),
@@ -112,6 +113,7 @@ export const API_KEY_FORM_DEFAULT_VALUES: ApiKeyFormValues = {
   model_limits: [],
   allow_ips: '',
   allow_user_quota_query: true,
+  log_disabled: false,
   group: DEFAULT_GROUP,
   auto_groups_mode: 'inherit',
   auto_groups: [],
@@ -154,6 +156,7 @@ export function transformFormDataToPayload(
     model_limits: data.model_limits.join(','),
     allow_ips: data.allow_ips || '',
     allow_user_quota_query: data.allow_user_quota_query,
+    log_disabled: data.log_disabled,
     group: data.group || '',
     auto_groups:
       data.group === 'auto' && data.auto_groups_mode === 'custom'
@@ -191,6 +194,7 @@ export function transformApiKeyToFormDefaults(
       : [],
     allow_ips: apiKey.allow_ips || '',
     allow_user_quota_query: !!apiKey.allow_user_quota_query,
+    log_disabled: !!apiKey.log_disabled,
     group: apiKey.group || DEFAULT_GROUP,
     auto_groups_mode: autoGroupsMode,
     auto_groups: autoGroups,

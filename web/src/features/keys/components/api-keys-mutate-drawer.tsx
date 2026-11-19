@@ -772,6 +772,31 @@ export function ApiKeysMutateDrawer({
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name='log_disabled'
+                      render={({ field }) => (
+                        <FormItem className={sideDrawerSwitchItemClassName()}>
+                          <div className='flex flex-col gap-0.5'>
+                            <FormLabel className='text-sm'>
+                              {t('Do not record usage logs')}
+                            </FormLabel>
+                            <FormDescription className='text-xs'>
+                              {t(
+                                'When enabled, requests made with this API key are still billed, but no usage log entries are kept for them.'
+                              )}
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </CollapsibleContent>
               </SideDrawerSection>

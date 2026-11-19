@@ -2976,7 +2976,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "相关项目",
     "footer.defaultCopyright": "版权所有。",
-    "footer.new\u0061pi.projectAttributionSuffix": "版权所有，由项目贡献者设计与开发。",
+    "footer.newapi.projectAttributionSuffix": "版权所有，由项目贡献者设计与开发。",
     "For a stronger password": "让密码更强",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "高级自定义渠道仅对 /v1/responses 且不做协议转换的路由生效。",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "对于 2025 年 5 月 10 日之后添加的渠道，在部署时无需从模型名称中移除 \".\"",
@@ -7781,6 +7781,17 @@
     "Zhipu": "智谱",
     "Zhipu GLM": "智谱GLM",
     "Zhipu V4": "智谱 V4",
-    "Zoom": "缩放"
+    "Zoom": "缩放",
+    "Statement": "对账单",
+    "Export CSV": "导出 CSV",
+    "By Model": "按模型",
+    "By Channel": "按渠道",
+    "Previous month": "上个月",
+    "Next month": "下个月",
+    "Failed to load statement": "加载对账单失败",
+    "Failed to export statement": "导出对账单失败",
+    "No usage recorded for this month.": "本月暂无用量记录。",
+    "Do not record usage logs": "不记录用量日志",
+    "When enabled, requests made with this API key are still billed, but no usage log entries are kept for them.": "启用后，使用此 API 密钥的请求仍会正常计费，但不会保留其用量日志记录。"
   }
 }

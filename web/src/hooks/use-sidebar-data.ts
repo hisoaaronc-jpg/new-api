@@ -29,6 +29,7 @@ import {
   MessageSquare,
   PlugZap,
   Radio,
+  ReceiptText,
   ServerCog,
   Settings,
   ShieldCheck,
@@ -98,6 +99,11 @@ export function useSidebarData(badges: SidebarBadges = {}): SidebarData {
             title: t('Audit Logs'),
             url: '/usage-logs/audit',
             icon: ClipboardList,
+          },
+          {
+            title: t('Statement'),
+            url: '/usage-logs/statement',
+            icon: ReceiptText,
           },
           {
             title: t('Task Logs'),
