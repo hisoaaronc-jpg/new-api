@@ -68,7 +68,13 @@ func UpdateChannelLocked(channelID int, update func(channel *Channel) error) (*C
 		channel.Keys = nil
 		updates := map[string]any{}
 		if channel.Key != key {
-			updates["key"], keyChanged = channel.Key, true
+			// Map updates bypass the Channel hooks, so encrypt here: the
+			// stored value must be ciphertext when encryption is enabled.
+			encrypted, err := encryptChannelKey(channel.Key)
+			if err != nil {
+				return nil, err
+			}
+			updates["key"], keyChanged = encrypted, true
 		}
 		if channel.Status != status {
 			updates["status"], statusChanged = channel.Status, true
@@ -90,7 +96,14 @@ func UpdateChannelLocked(channelID int, update func(channel *Channel) error) (*C
 		if err := DB.Where("id = ?", channelID).First(&channel).Error; err != nil {
 			return nil, err
 		}
-		stored := channel.Key
+		// The compare-and-swap guard below must match the key as stored,
+		// which is ciphertext when channel key encryption is enabled, while
+		// channel.Key after the read above is decrypted plaintext. Fetch the
+		// raw column value (no model destination, so no decrypt hook runs).
+		var stored string
+		if err := DB.Model(&Channel{}).Where("id = ?", channelID).Select(commonKeyCol).Row().Scan(&stored); err != nil {
+			return nil, err
+		}
 		updates, err := changes()
 		if err != nil {
 			return nil, err
@@ -177,8 +190,14 @@ func UpdateTaskPluginChannelLocked(channelID int, update func(channel *Channel, 
 		}
 		statusChanged, enabled = target.Status != status, target.Status == common.ChannelStatusEnabled
 		target.Keys = nil
+		// Map updates bypass the Channel hooks, so encrypt here: the stored
+		// value must be ciphertext when encryption is enabled.
+		encryptedKey, err := encryptChannelKey(target.Key)
+		if err != nil {
+			return err
+		}
 		updates := map[string]any{
-			"key":          target.Key,
+			"key":          encryptedKey,
 			"status":       target.Status,
 			"other_info":   target.OtherInfo,
 			"channel_info": target.ChannelInfo,
@@ -266,7 +285,13 @@ func UpdateScheduledChannelLocked(ctx context.Context, channelID int, update fun
 		channel.Keys = nil
 		updates := map[string]any{}
 		if channel.Key != key {
-			updates["key"], keyChanged = channel.Key, true
+			// Map updates bypass the Channel hooks, so encrypt here: the
+			// stored value must be ciphertext when encryption is enabled.
+			encrypted, err := encryptChannelKey(channel.Key)
+			if err != nil {
+				return err
+			}
+			updates["key"], keyChanged = encrypted, true
 		}
 		if channel.Status != status {
 			updates["status"], statusChanged = channel.Status, true

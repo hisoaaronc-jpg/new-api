@@ -195,6 +195,11 @@ func InitDB() (err error) {
 			db = db.Debug()
 		}
 		DB = db
+		// A malformed channel key encryption key must stop startup, not the
+		// first channel read or write after traffic arrives.
+		if err := ValidateChannelKeyEncryption(); err != nil {
+			return err
+		}
 		// MySQL charset/collation startup check: ensure Chinese-capable charset
 		if common.UsingMainDatabase(common.DatabaseTypeMySQL) {
 			if err := checkMySQLChineseSupport(DB); err != nil {
