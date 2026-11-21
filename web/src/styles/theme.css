@@ -94,8 +94,46 @@ For commercial licensing, please contact support@quantumnous.com
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * ── Nanhai Data Port reskin — token values only (fork-local) ─────────
+ * No component, layout or logic changes: this block and the `.dark`
+ * block below only re-value the semantic tokens defined in this file.
+ * Palette is shared 1:1 with the marketing site
+ * (nanhai.aaronalphax.com): --bg #070604 / --gold #c9a227 /
+ * --gold2 #e8cf7a / --text #f2ead8 / lines #2a2317 + #3a2f1a.
+ *
+ * Temperament — Singapore institutional (OCBC / UOB HQ register):
+ * restrained, ordered, disciplined whitespace. Gold is an accent,
+ * never a flood; no crypto-style gradients or neon. Accent washes
+ * (color-mix of --primary into surfaces) are capped at 12–14%.
+ * Radius is unified at 0.875rem (14px, the marketing site's radius)
+ * for a squarer, more institutional corner. Density/spacing stays
+ * governed by the existing theme-scale axis, untouched here.
+ *
+ * 命盘令牌映射 (element mapping — 癸水身强, 寒湿; 用神 火>土>木, 忌金水做面)
+ *   土为体 (~60%, surfaces): dark #070604 bg / #0d0a06 sidebar /
+ *     #12100b card / #171309 popover+secondary / #2a2317 border /
+ *     #3a2f1a input / #a89c7d + #7d735c muted earth tones.
+ *     Light: #faf7ef warm-paper canvas, #f2ead8 earth-tinted
+ *     surfaces, #e6ddc6 warm hairlines, #ffffff cards (OCBC register).
+ *   火为魂 (~25%, light & emphasis): warm gold #c9a227 (primary /
+ *     ring / sidebar-primary / chart-1), bright gold #e8cf7a
+ *     (chart-2, secondary + sidebar accent foregrounds — highlights
+ *     only), ship red #c8102e (light destructive, chart-4,
+ *     overview-accent-3) and its lit step #e5322d (dark destructive,
+ *     kept >=4.5:1 on the near-black canvas). Red appears in single
+ *     series / small areas only — the OCBC Red rule.
+ *   木为气 (~10%, lines & life): #3ecf6e (the marketing site's green)
+ *     confined to --success and chart-5. Never a surface.
+ *   金水 (<=5%, hairlines / info layer only): no silver-white or
+ *     cold-blue surfaces anywhere. Foreground is warm ivory #f2ead8,
+ *     not silver. --info is desaturated to slate #647d96 and stays
+ *     inside the info layer.
+ *   On-gold text is #191204 (warm near-black from the site palette):
+ *   white on #c9a227 would fail contrast.
+ */
 :root {
-  --radius: 1rem;
+  --radius: 0.875rem;
   --app-header-height: 3rem;
   /* Static build-channel fallback consumed when JS hasn't booted yet. */
   --app-rev: '2k6e8r7p';
@@ -103,21 +141,21 @@ For commercial licensing, please contact support@quantumnous.com
    * saved preference. Explicit Sans selects Public Sans in theme-presets.css. */
   --font-ui-sans: sans-serif;
   --font-body: var(--font-ui-sans);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.692 0.141 243.716);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0 0);
-  --secondary-foreground: oklch(0.42 0.16 250);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.49 0 0);
+  --background: #faf7ef;
+  --foreground: #191204;
+  --card: #ffffff;
+  --card-foreground: #191204;
+  --popover: #ffffff;
+  --popover-foreground: #191204;
+  --primary: #c9a227;
+  --primary-foreground: #191204;
+  --secondary: #f2ead8;
+  --secondary-foreground: #191204;
+  --muted: #f2ead8;
+  --muted-foreground: #7d735c;
   --accent: color-mix(in oklch, var(--primary) 12%, var(--background));
-  --accent-foreground: oklch(0.145 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --accent-foreground: #191204;
+  --destructive: #c8102e;
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.596 0.145 163.225);
   --success-foreground: oklch(0.985 0 0);
@@ -125,29 +163,29 @@ For commercial licensing, please contact support@quantumnous.com
   --warning-foreground: oklch(0.145 0 0);
   --info: oklch(0.588 0.158 241.966);
   --info-foreground: oklch(0.985 0 0);
-  --neutral: oklch(0.708 0 0);
-  --neutral-foreground: oklch(0.145 0 0);
-  --border: oklch(0.93 0 0);
-  --input: oklch(0.93 0 0);
-  --ring: oklch(0.708 0.16 249.003);
-  --chart-1: oklch(0.72 0.18 250);
-  --chart-2: oklch(0.65 0.15 200);
-  --chart-3: oklch(0.7 0.12 280);
-  --chart-4: oklch(0.68 0.19 325);
-  --chart-5: oklch(0.68 0.16 155);
-  --overview-accent-1: oklch(0.72 0.18 250);
-  --overview-accent-2: oklch(0.65 0.15 200);
-  --overview-accent-3: oklch(0.7 0.12 280);
+  --neutral: #a89c7d;
+  --neutral-foreground: #191204;
+  --border: #e6ddc6;
+  --input: #e6ddc6;
+  --ring: #c9a227;
+  --chart-1: #c9a227;
+  --chart-2: #a89c7d;
+  --chart-3: #7d735c;
+  --chart-4: #c8102e;
+  --chart-5: #3ecf6e;
+  --overview-accent-1: #c9a227;
+  --overview-accent-2: #a89c7d;
+  --overview-accent-3: #c8102e;
   --sidebar: color-mix(in oklch, var(--foreground) 0.5%, var(--background));
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.64 0.197 253.892);
-  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-primary: #c9a227;
+  --sidebar-primary-foreground: #191204;
   --sidebar-accent: color-mix(in oklch, var(--primary) 12%, var(--background));
-  --sidebar-accent-foreground: oklch(0.579 0.196 255.909);
-  --sidebar-border: oklch(0.93 0 0);
-  --sidebar-ring: oklch(0.58 0.2 250);
-  --skeleton-base: oklch(0.97 0 0);
-  --skeleton-highlight: oklch(0.985 0 0);
+  --sidebar-accent-foreground: #8a6d1c;
+  --sidebar-border: #e6ddc6;
+  --sidebar-ring: #c9a227;
+  --skeleton-base: #f2ead8;
+  --skeleton-highlight: #faf7ef;
   --table-row: var(--background);
   --table-header: color-mix(
     in oklch,
@@ -182,49 +220,50 @@ For commercial licensing, please contact support@quantumnous.com
   /* Native controls follow the theme; Dark Reader also reads this to detect
      the built-in dark theme. */
   color-scheme: dark;
-  /* OpenAI-like dark mode with a crisp charcoal canvas. */
-  --background: oklch(0.235 0 0);
-  --foreground: oklch(0.965 0 0);
-  --card: oklch(0.285 0 0);
-  --card-foreground: oklch(0.965 0 0);
-  --popover: oklch(0.305 0 0);
-  --popover-foreground: oklch(0.965 0 0);
-  --primary: oklch(0.54 0.142 248.516);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.335 0 0);
-  --secondary-foreground: oklch(0.9 0.05 250);
-  --muted: oklch(0.305 0 0);
-  --muted-foreground: oklch(0.78 0 0);
-  --accent: color-mix(in oklch, var(--primary) 20%, var(--background));
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  /* Nanhai black-gold dark: warm-black earth canvas, gold reserved
+     for emphasis. See the reskin note above :root. */
+  --background: #070604;
+  --foreground: #f2ead8;
+  --card: #12100b;
+  --card-foreground: #f2ead8;
+  --popover: #171309;
+  --popover-foreground: #f2ead8;
+  --primary: #c9a227;
+  --primary-foreground: #191204;
+  --secondary: #171309;
+  --secondary-foreground: #e8cf7a;
+  --muted: #12100b;
+  --muted-foreground: #a89c7d;
+  --accent: color-mix(in oklch, var(--primary) 14%, var(--background));
+  --accent-foreground: #f2ead8;
+  --destructive: #e5322d;
   --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.696 0.17 162.48);
+  --success: #3ecf6e;
   --success-foreground: oklch(0.145 0 0);
   --warning: oklch(0.769 0.188 70.08);
   --warning-foreground: oklch(0.145 0 0);
-  --info: oklch(0.613 0.14 239.919);
+  --info: #647d96;
   --info-foreground: oklch(0.145 0 0);
-  --neutral: oklch(0.76 0 0);
-  --neutral-foreground: oklch(0.155 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 17%);
-  --ring: oklch(0.554 0.148 250.726);
-  --chart-1: oklch(0.76 0.14 250);
-  --chart-2: oklch(0.76 0.13 200);
-  --chart-3: oklch(0.76 0.13 285);
-  --chart-4: oklch(0.75 0.16 325);
-  --chart-5: oklch(0.76 0.14 155);
-  --sidebar: oklch(0.225 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.588 0.123 246.488);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: color-mix(in oklch, var(--primary) 20%, var(--background));
-  --sidebar-accent-foreground: oklch(0.9 0.05 250);
-  --sidebar-border: oklch(1 0 0 / 11%);
-  --sidebar-ring: oklch(0.7 0.17 250);
-  --skeleton-base: oklch(0.335 0 0);
-  --skeleton-highlight: oklch(0.44 0 0);
+  --neutral: #7d735c;
+  --neutral-foreground: #f2ead8;
+  --border: #2a2317;
+  --input: #3a2f1a;
+  --ring: #c9a227;
+  --chart-1: #c9a227;
+  --chart-2: #e8cf7a;
+  --chart-3: #a89c7d;
+  --chart-4: #c8102e;
+  --chart-5: #3ecf6e;
+  --sidebar: #0d0a06;
+  --sidebar-foreground: #f2ead8;
+  --sidebar-primary: #c9a227;
+  --sidebar-primary-foreground: #191204;
+  --sidebar-accent: color-mix(in oklch, var(--primary) 14%, var(--background));
+  --sidebar-accent-foreground: #e8cf7a;
+  --sidebar-border: #2a2317;
+  --sidebar-ring: #c9a227;
+  --skeleton-base: #12100b;
+  --skeleton-highlight: #171309;
   --table-row: var(--background);
   --table-header: color-mix(in oklch, var(--foreground) 6%, var(--background));
   --table-header-hover: color-mix(
